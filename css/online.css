@@ -1,0 +1,386 @@
+/* =====================================================================
+   オンライン実験（Online Phase 1）の画面だけのスタイル
+   ゲーム本体のスタイル（style.css）は変更せず、この画面の見た目はここにまとめる
+   ===================================================================== */
+
+/* タイトルの「オンライン実験」ボタン（CPU対戦より控えめに） */
+#btn-online { margin-top: calc(-1 * clamp(6px, 3vh, 26px)); font-size: 15px; min-height: 42px; padding: 8px 22px; }
+#btn-online .ol-tag { margin-left: 8px; }
+
+/* 開いている間はタイトルの中身と「横向きにしてください」案内を隠す（この画面は縦横どちらでも使える） */
+body[data-online] #title-screen { visibility: hidden; }
+body[data-online] #rotate-hint,
+body[data-online] #fs-btn { display: none !important; }
+
+.online-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  pointer-events: auto;
+  box-sizing: border-box;
+  padding: calc(var(--safe-t) + 14px) calc(var(--safe-r) + 14px) calc(var(--safe-b) + 18px) calc(var(--safe-l) + 14px);
+  background: rgba(3, 20, 38, 0.86);
+  color: #eef4ff;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  animation: menu-in 0.25s ease-out both;
+}
+.online-screen * { box-sizing: border-box; }
+.online-screen button { touch-action: manipulation; font-family: inherit; }
+.online-screen .menu-btn { touch-action: manipulation; }
+
+.ol-panel { width: min(980px, 100%); margin: 0 auto; display: grid; gap: 12px; }
+.ol-head { text-align: center; }
+.ol-title { margin: 0; font-family: var(--font-display, var(--font-ui)); font-size: clamp(20px, 4.4vmin, 28px); letter-spacing: 0.06em; }
+.ol-sub { margin: 4px 0 0; font-size: 13px; opacity: 0.8; }
+.ol-tag {
+  display: inline-block;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 215, 170, 0.75);
+  border-radius: 999px;
+  color: #ffe2bd;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 18px;
+  vertical-align: middle;
+}
+
+/* メニュー */
+.ol-menu { display: grid; gap: 12px; justify-items: center; margin-top: 8px; }
+.ol-menu .menu-btn { width: min(320px, 100%); }
+.ol-note { margin: 14px auto 0; max-width: 34em; text-align: center; font-size: 12px; opacity: 0.7; }
+
+/* ルームに参加 */
+.ol-join { display: grid; gap: 10px; width: min(380px, 100%); margin: 8px auto 0; }
+.ol-label { font-weight: 700; text-align: center; }
+.ol-code-input {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid rgba(200, 225, 255, 0.7);
+  border-radius: 14px;
+  background: rgba(5, 14, 40, 0.7);
+  overflow: hidden;
+}
+.ol-code-prefix { padding: 0 4px 0 16px; font-size: 22px; font-weight: 800; letter-spacing: 0.08em; opacity: 0.75; }
+#ol-code {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 12px 12px 2px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  font: 800 24px/1.2 var(--font-ui);   /* 16px 以上（iPhone で入力時に拡大されない） */
+  letter-spacing: 0.18em;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.ol-code-input:focus-within { border-color: #eafcff; box-shadow: 0 0 0 3px rgba(140, 220, 255, 0.3); }
+.ol-error { min-height: 1.5em; margin: 0; color: #ffc0b4; text-align: center; font-size: 13px; }
+.ol-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.ol-row .menu-btn { min-width: 130px; }
+
+/* 接続状態 */
+.ol-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  font-size: clamp(18px, 4vmin, 24px);
+  font-weight: 800;
+}
+.ol-dot { width: 14px; height: 14px; border-radius: 50%; background: #9fb6d6; flex: none; }
+.ol-status[data-kind="busy"] .ol-dot { background: #8fe3ff; animation: ol-blink 0.9s ease-in-out infinite alternate; }
+.ol-status[data-kind="wait"] .ol-dot { background: #ffd98a; }
+.ol-status[data-kind="ok"] .ol-dot { background: #6ff0a0; box-shadow: 0 0 10px #6ff0a0; }
+.ol-status[data-kind="warn"] .ol-dot { background: #ffc35a; animation: ol-blink 0.5s ease-in-out infinite alternate; }
+.ol-status[data-kind="bad"] .ol-dot { background: #ff7a7a; }
+@keyframes ol-blink { from { opacity: 0.35; } to { opacity: 1; } }
+.ol-role {
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: rgba(111, 240, 160, 0.18);
+  border: 1px solid rgba(111, 240, 160, 0.8);
+  color: #c9ffdc;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+}
+.ol-status-detail { margin: 0; text-align: center; font-size: 13px; opacity: 0.88; min-height: 1.5em; }
+
+.ol-room {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 10px 14px;
+  border: 1.5px dashed rgba(255, 226, 189, 0.7);
+  border-radius: 16px;
+  background: rgba(40, 24, 70, 0.5);
+}
+.ol-room-label { font-size: 13px; opacity: 0.85; }
+.ol-room-code {
+  font-size: clamp(30px, 9vmin, 52px);
+  letter-spacing: 0.1em;
+  color: #ffe9c7;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* カード */
+.ol-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); align-items: start; }
+.ol-card {
+  padding: 12px 14px;
+  border: 1px solid rgba(180, 210, 255, 0.35);
+  border-radius: 14px;
+  background: rgba(8, 22, 54, 0.72);
+  min-width: 0;
+}
+.ol-card h3 { margin: 0 0 8px; font-size: 15px; letter-spacing: 0.04em; }
+.ol-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.ol-card-head h3 { margin: 0; }
+.ol-card.is-disabled { opacity: 0.5; }
+.ol-hint { margin: 0 0 10px; font-size: 12px; opacity: 0.8; }
+.ol-fine { margin: 10px 0 0; font-size: 11px; opacity: 0.65; }
+.ol-pc-only kbd {
+  display: inline-block; min-width: 1.6em; padding: 0 5px; margin: 0 2px;
+  border: 1px solid rgba(220, 235, 255, 0.6); border-radius: 5px; font: 700 11px/1.5 var(--font-ui); text-align: center;
+}
+body.is-touch .ol-pc-only { display: none; }
+
+.ol-dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 3px 12px; margin: 0; font-size: 13px; }
+.ol-dl dt { opacity: 0.72; white-space: nowrap; }
+.ol-dl dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ol-dl dd.is-warn { color: #ffc35a; }
+
+/* 通信テスト */
+.ol-test-btns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ol-tbtn {
+  min-height: 64px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(234, 244, 255, 0.85);
+  background: rgba(140, 170, 255, 0.24);
+  color: #f4f8ff;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform 0.08s, background 0.12s;
+}
+.ol-tbtn.is-down { transform: scale(0.94); background: rgba(143, 227, 255, 0.6); }
+.ol-tbtn:disabled { cursor: default; opacity: 0.6; }
+.ol-test-io { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; margin-top: 10px; }
+.ol-test-io p { margin: 0; }
+.ol-recv { font-size: 18px; font-weight: 800; }
+.ol-recv strong { display: inline-block; min-width: 4.5em; color: #9ff7c4; }
+.ol-recv strong.flash { animation: ol-flash 0.5s ease-out; }
+@keyframes ol-flash { from { transform: scale(1.3); color: #ffffff; text-shadow: 0 0 12px #9ff7c4; } to { transform: scale(1); } }
+.ol-sent { font-size: 13px; opacity: 0.8; }
+
+/* 連続通信テスト */
+.ol-burst-btn { width: 100%; font-size: 16px; }
+.ol-burst-btn:disabled { opacity: 0.55; cursor: default; }
+.ol-progress { margin-top: 10px; display: grid; gap: 4px; font-size: 12px; }
+.ol-bar { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.ol-bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #8fe3ff, #6ff0a0); transition: width 0.15s linear; }
+.ol-burst-result { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(180, 210, 255, 0.25); }
+.ol-burst-in { margin: 10px 0 0; font-size: 12px; color: #c9ffdc; }
+
+/* ログ */
+.ol-logcard { grid-column: 1 / -1; }
+.ol-log {
+  margin: 0;
+  padding: 8px 10px;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 10px;
+  background: rgba(0, 6, 20, 0.6);
+  font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: pan-y;
+}
+.ol-log li { overflow-wrap: anywhere; }
+.ol-log li.lv-warn { color: #ffd98a; }
+.ol-log li.lv-error { color: #ffa8a0; }
+.ol-log-time { opacity: 0.55; }
+
+.ol-mini {
+  min-height: 34px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(220, 235, 255, 0.6);
+  background: rgba(10, 16, 56, 0.6);
+  color: #eef4ff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ol-mini.is-down { transform: scale(0.95); }
+
+.ol-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; padding-bottom: 6px; }
+.ol-actions .menu-btn { min-width: 180px; }
+
+/* 横長で背の低い画面（横向きスマホ） */
+@media (max-height: 540px) {
+  .online-screen { padding-top: calc(var(--safe-t) + 8px); }
+  .ol-panel { gap: 8px; }
+  .ol-sub { display: none; }
+  .ol-menu { grid-template-columns: repeat(3, auto); justify-content: center; }
+  .ol-menu .menu-btn { width: auto; }
+  .ol-tbtn { min-height: 54px; }
+  .ol-log { max-height: 180px; }
+}
+@media (max-width: 420px) {
+  .ol-menu { grid-template-columns: 1fr; }
+  .ol-actions .menu-btn { min-width: 0; flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .online-screen, .ol-status .ol-dot, .ol-recv strong.flash { animation: none !important; }
+}
+
+/* =====================================================================
+   Online Phase 2：操作実験
+   ===================================================================== */
+.ol-move {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 12px 16px;
+  border: 1.5px solid rgba(111, 240, 160, 0.6);
+  border-radius: 16px;
+  background: rgba(16, 60, 52, 0.55);
+}
+.ol-move-text { display: grid; gap: 4px; flex: 1 1 280px; min-width: 0; }
+.ol-move-text strong { font-size: 16px; color: #c9ffdc; }
+.ol-move-sub { font-size: 12px; opacity: 0.85; }
+.ol-move-note { font-size: 13px; color: #ffd98a; }
+.ol-move-btn { font-size: 17px; min-width: 220px; }
+.ol-move-btn:disabled { opacity: 0.6; cursor: default; }
+@media (max-width: 420px) { .ol-move-btn { width: 100%; min-width: 0; } }
+
+/* 操作実験中：攻撃系のボタン・操作ヒントを隠す（コタロは移動とジャンプだけ） */
+body[data-online-test] #touch-ui [data-action]:not([data-action="jump"]),
+body[data-online-test] #controls-hint { display: none !important; }
+/* GUEST はスティックの代わりに LEFT / RIGHT / JUMP のパッド（#ol-pad）を使う */
+body[data-online-test="guest"] #touch-ui { display: none !important; }
+
+#ol-move-hud {
+  position: absolute;
+  top: calc(var(--safe-t) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  width: min(560px, calc(100% - 300px));
+  min-width: 240px;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  pointer-events: none;
+  font-family: var(--font-ui);
+  color: #eef4ff;
+}
+.olm-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
+.olm-badge {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(255, 210, 150, 0.2);
+  border: 1px solid rgba(255, 220, 180, 0.8);
+  color: #ffe2bd;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+.olm-role { font-size: 12px; font-weight: 700; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
+.olm-btn {
+  pointer-events: auto;
+  touch-action: manipulation;
+  min-height: 30px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(220, 235, 255, 0.6);
+  background: rgba(10, 16, 56, 0.6);
+  color: #eef4ff;
+  font: 700 12px/1.2 var(--font-ui);
+  cursor: pointer;
+}
+.olm-end { border-color: rgba(255, 190, 170, 0.8); }
+.olm-diag {
+  margin: 0;
+  padding: 6px 10px;
+  max-width: 100%;
+  border-radius: 10px;
+  background: rgba(0, 10, 28, 0.62);
+  font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+#ol-move-hud.diag-off .olm-diag { display: none; }
+.olm-hint { margin: 0; font-size: 11px; opacity: 0.75; text-align: center; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
+.olm-hint kbd { display: inline-block; padding: 0 4px; margin: 0 1px; border: 1px solid rgba(220, 235, 255, 0.5); border-radius: 4px; font: 700 10px/1.4 var(--font-ui); }
+body.is-touch .olm-hint { display: none; }
+@media (max-width: 760px) { #ol-move-hud { width: calc(100% - 24px); top: calc(var(--safe-t) + 64px); } }
+
+/* GUEST のタッチ操作：左に LEFT / RIGHT、右に JUMP（同時押し可） */
+#ol-pad { display: none; }
+body.is-touch[data-online-test="guest"] #ol-pad { display: block; }
+#ol-pad {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 0;
+  z-index: 5;
+}
+.olp-dir, .olp-jump {
+  position: absolute;
+  bottom: calc(var(--safe-b) + 18px);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.olp-dir {
+  left: calc(var(--safe-l) + 18px);
+  display: flex;
+  gap: 10px;
+}
+.olp-key, .olp-jump > span {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: var(--btn);
+  height: var(--btn);
+  border-radius: 50%;
+  border: 2px solid rgba(234, 252, 255, 0.85);
+  background: radial-gradient(circle at 35% 28%, rgba(234, 252, 255, 0.45), rgba(143, 227, 255, 0.28) 55%, rgba(43, 179, 224, 0.3));
+  color: #f4fbff;
+  font-size: calc(var(--btn) * 0.3);
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  transition: transform 0.06s, background 0.1s;
+}
+.olp-key small, .olp-jump small { display: block; margin-top: 3px; font-size: 11px; letter-spacing: 0.08em; }
+.olp-key.pressed, .olp-jump.pressed > span {
+  transform: scale(0.92);
+  background: radial-gradient(circle at 35% 28%, rgba(234, 252, 255, 0.85), rgba(143, 227, 255, 0.7) 55%, rgba(43, 179, 224, 0.75));
+}
+.olp-jump { right: calc(var(--safe-r) + 22px); }
+.olp-jump > span { width: calc(var(--btn) * 1.15); height: calc(var(--btn) * 1.15); }
+
+/* Online Phase 3：予測 ON / OFF ボタン（GUEST だけ） */
+#ol-move-hud .olm-pred { display: none; }
+#ol-move-hud[data-role="guest"] .olm-pred { display: inline-block; border-color: rgba(255, 160, 150, 0.9); background: rgba(80, 20, 30, 0.7); }
+#ol-move-hud[data-role="guest"] .olm-pred.is-on { border-color: rgba(111, 240, 160, 0.95); background: rgba(16, 80, 52, 0.8); color: #c9ffdc; }

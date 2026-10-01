@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#031a2c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<!--HEAD-START-->
+<title>コタロの大格闘 Online（実験版）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<!-- オンライン実験（Online Phase 1）の画面だけのスタイル -->
+<link rel="stylesheet" href="css/online.css">
+<!--HEAD-END-->
+</head>
+<body>
+<!--BODY-START-->
+<div id="game-root">
+  <canvas id="game-canvas" aria-label="ゲーム画面"></canvas>
+
+  <div id="hud">
+    <span class="phase">開発用表示（H で切替）</span>
+    <span class="title">コタロ</span>
+    <span class="hint hint-pc"><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> 移動　<kbd>Space</kbd> ジャンプ（空中でもう1回）　<kbd>J</kbd> 攻撃　<kbd>K</kbd> クラゲ電撃　<kbd>L</kbd> バブルショット　<kbd>I</kbd> ガード（長押し）　<kbd>R</kbd> リセット　<kbd>H</kbd> 判定表示　<kbd>T</kbd> タッチUI</span>
+    <span class="hint hint-touch">左で移動・右でジャンプ／攻撃／必殺／泡／防御</span>
+  </div>
+
+  <div id="rules-hud" aria-live="polite"></div>
+
+  <div id="countdown" hidden aria-live="assertive"></div>
+
+  <div id="ko-overlay" hidden>
+    <p class="ko-title">コタロ WIN</p>
+    <div class="ko-actions">
+      <button id="ko-reset" class="menu-btn primary" type="button">もう一度</button>
+      <button id="ko-title" class="menu-btn ghost" type="button">タイトルへ戻る</button>
+    </div>
+  </div>
+
+  <!-- Phase 10：タイトル画面（背景はキャンバスの海中背景をそのまま使う） -->
+  <section id="title-screen" class="menu-screen" hidden aria-label="タイトル">
+    <div class="title-main">
+      <h1 class="title-logo" aria-label="コタロの大格闘">
+        <span class="logo-small">コタロの</span>
+        <span class="logo-big">大格闘</span>
+      </h1>
+      <button id="btn-cpu" class="menu-btn primary big" type="button">CPUと対戦</button>
+      <!-- Online Phase 1：通信の接続実験（テスト機能。対戦はまだできない） -->
+      <button id="btn-online" class="menu-btn ghost" type="button">オンライン実験<span class="ol-tag">TEST</span></button>
+    </div>
+    <!-- コタロさんの画像は提供された元ファイルをそのまま表示（位置・大きさ・ゆっくり上下だけ。光は後ろの別要素） -->
+    <div class="title-art" aria-hidden="true">
+      <div class="title-glow"></div>
+      <img class="title-kotaro" src="assets/kotaro.png" alt="" draggable="false">
+    </div>
+  </section>
+
+  <!-- Phase 10：難易度選択（中身は KG.CPU_DIFFICULTY から作る） -->
+  <section id="difficulty-screen" class="menu-screen" hidden aria-label="難易度選択">
+    <div class="diff-panel">
+      <h2 class="diff-heading">CPUの強さをえらぶ</h2>
+      <p class="diff-sub">対戦相手：ルミポ</p>
+      <div id="diff-list" class="diff-list" role="radiogroup" aria-label="CPUの強さ"></div>
+      <div class="diff-actions">
+        <button id="btn-back" class="menu-btn ghost" type="button">戻る</button>
+        <button id="btn-start" class="menu-btn primary" type="button">対戦開始</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="controls-hint" aria-hidden="true">
+    <span><kbd>A</kbd><kbd>D</kbd> 移動</span><span><kbd>Space</kbd> ジャンプ</span><span><kbd>J</kbd> 攻撃</span><span><kbd>K</kbd> クラゲ電撃</span><span><kbd>L</kbd> 泡</span><span><kbd>I</kbd> ガード</span>
+  </div>
+
+  <button id="fs-btn" type="button" aria-label="全画面" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+  </button>
+
+  <div id="touch-ui" hidden>
+    <div id="stick-zone">
+      <div class="stick-base"><div class="stick-knob"></div></div>
+    </div>
+    <div id="button-cluster">
+      <!-- slot-upper: 必殺（Phase 5: クラゲ電撃）。再使用待ちの間は暗くなり、残り時間が円で表示される -->
+      <button class="tbtn slot-upper" type="button" data-action="special" aria-label="必殺">
+        <span class="face">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 2.5L6 13h5l-1.5 8.5L18 10.5h-5.2z"/></svg>
+          <span class="label">必殺</span>
+        </span>
+        <span class="cd-ring" aria-hidden="true"></span>
+      </button>
+      <!-- slot-sub: 泡（Phase 6: バブルショット）。補助ボタンとして少し小さく、攻撃の上に置く -->
+      <button class="tbtn slot-sub" type="button" data-action="shoot" aria-label="泡">
+        <span class="face">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="13" r="6.5"/><circle cx="18.5" cy="6" r="2.6"/><path d="M7 11a3.5 3.5 0 0 1 3-2.6"/></svg>
+          <span class="label">泡</span>
+        </span>
+        <span class="cd-ring" aria-hidden="true"></span>
+      </button>
+      <!-- slot-guard: 防御（Phase 7）。押している間だけガード。補助ボタンとして小さく、攻撃の左下に置く -->
+      <button class="tbtn slot-guard" type="button" data-action="guard" aria-label="防御">
+        <span class="face">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.3-3 7.6-7 9.5-4-1.9-7-5.2-7-9.5V6z"/></svg>
+          <span class="label">防御</span>
+        </span>
+      </button>
+      <button class="tbtn slot-inner" type="button" data-action="attack" aria-label="攻撃">
+        <span class="face">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>
+          <span class="label">攻撃</span>
+        </span>
+      </button>
+      <button class="tbtn slot-main" type="button" data-action="jump" aria-label="ジャンプ">
+        <span class="face">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 15l7-7 7 7"/></svg>
+          <span class="label">ジャンプ</span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div id="rotate-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M20 8a8 8 0 0 1 0 8M22 11l-2 1-1-2" transform="translate(-1 0)"/></svg>
+    <p>スマホを横向きにして遊んでください</p>
+    <small>画面の向きのロックがオンの場合は解除してください</small>
+  </div>
+
+  <div id="status" hidden></div>
+</div>
+
+<script src="src/config.js"></script>
+<script src="src/util.js"></script>
+<script src="src/characters.js"></script>
+<script src="src/input.js"></script>
+<script src="src/touch.js"></script>
+<script src="src/physics.js"></script>
+<script src="src/stage.js"></script>
+<script src="src/moves.js"></script>
+<script src="src/status.js"></script>
+<script src="src/fighter.js"></script>
+<script src="src/ai.js"></script>
+<script src="src/projectile.js"></script>
+<script src="src/combat.js"></script>
+<script src="src/rules.js"></script>
+<script src="src/hud.js"></script>
+<script src="src/effects.js"></script>
+<script src="src/camera.js"></script>
+<script src="src/background.js"></script>
+<script src="src/game.js"></script>
+<script src="src/menu.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/main.js"></script>
+<!-- オンライン実験（Online Phase 1 通信 / Phase 2 操作実験）。ゲーム本体とは独立。PeerJS は async で読み込み、CPU対戦の起動を待たせない -->
+<!-- PeerJS 1.5.5（cdnjs）。integrity はこのファイルの SHA-384。ローカルに置く場合は src を差し替えて integrity も更新 -->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js" integrity="sha384-x0YgkOr/3UOZP2CRDxGW9e0Q+2Qjyr3uJrm4xU32Y7ZCNAo7Cc7bjhrZMi/dwczu" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="src/network/net-protocol.js"></script>
+<script src="src/network/net-session.js"></script>
+<script src="src/network/online-move.js"></script>
+<script src="src/network/online-ui.js"></script>
+<!--BODY-END-->
+</body>
+</html>
